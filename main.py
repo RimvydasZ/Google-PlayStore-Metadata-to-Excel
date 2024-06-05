@@ -3,6 +3,7 @@ import os
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 import time
 
 def main():  
@@ -16,34 +17,49 @@ def read_links_from_excel():
     path = os.getcwd() + "/xlsx"
     exceldata = pd.read_excel(path + "/urls.xlsx",sheet_name = "Sheet1")
     urls = exceldata['links'].tolist()
-    #print(urls)
 
 def scrape_links():
-    driver = webdriver.Chrome()
-    df = pd.DataFrame(columns=['App Name', 'App URL', 'Developer Name', 'Developer URL'])
+    try:
+        driver = webdriver.Chrome()
+        df = pd.DataFrame(columns=['App Name', 'App URL', 'Developer Name', 'Developer URL'])
 
-    for url in urls:
-        driver.get(url)
-        time.sleep(5)
+        for url in urls:
+            try:
+                driver.get(url)
+                time.sleep(5)
 
-        app_current_url = driver.current_url
-        app_name = driver.find_element(By.XPATH, "//h1[@itemprop='name']").text
-        app_dev_url = driver.find_element(By.XPATH, "//div/a[contains(@href, '/store/apps/dev')]").get_attribute("href")
-        app_dev_name = driver.find_element(By.XPATH, "//div/a[contains(@href, '/store/apps/dev')]/span").text
+                app_current_url = driver.current_url
+                app_name = driver.find_element(By.XPATH, "//h1[@itemprop='name']").text
+                app_dev_url = driver.find_element(By.XPATH, "//div/a[contains(@href, '/store/apps/dev')]").get_attribute("href")
+                app_dev_name = driver.find_element(By.XPATH, "//div/a[contains(@href, '/store/apps/dev')]/span").text
 
-        #print(app_name)
-        #print("Currect url:" + app_current_url)     
-        #print(app_dev_url)
-        #print(app_dev_name)
-        data = {
-            'App Name': [app_name],
-            'App URL': [app_current_url],
-            'Developer Name': [app_dev_name],
-            'Developer URL': [app_dev_url]
-        }
-        df1 = pd.DataFrame(data)
+                data = {
+                    'App Name': [app_name],
+                    'App URL': [app_current_url],
+                    'Developer Name': [app_dev_name],
+                    'Developer URL': [app_dev_url]
+                }
+                df1 = pd.DataFrame(data)
 
-        df = pd.concat([df, df1])
+                df = pd.concat([df, df1])
+            except NoSuchElementException as e:
+                print("Element not found:", e)
+                #fill in empty values so that output row count would stay the same as initial xlsx.
+                app_name = "EMPTY"
+                app_dev_url = "EMPTY"
+                app_dev_name = "EMPTY"
+
+                data = {
+                    'App Name': [app_name],
+                    'App URL': [app_current_url],
+                    'Developer Name': [app_dev_name],
+                    'Developer URL': [app_dev_url]
+                }
+                df1 = pd.DataFrame(data)
+
+                df = pd.concat([df, df1])
+    finally:
+        driver.quit()
     return df
 
 def df_to_excel(df_main):
