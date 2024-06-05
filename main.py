@@ -1,11 +1,9 @@
 import pandas as pd
 import os
-#import webbrowser
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import time
-from bs4 import BeautifulSoup
 
 def main():  
     read_links_from_excel()
