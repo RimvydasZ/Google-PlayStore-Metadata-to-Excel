@@ -27,9 +27,9 @@ def scrape_links():
             try:
                 driver.get(url)
                 time.sleep(5)
-
+                #TODO handling exceptions for every element
                 app_current_url = driver.current_url
-                app_name = driver.find_element(By.XPATH, "//h1[@itemprop='name']").text
+                app_name = driver.find_element(By.XPATH, "//*[@itemprop='name']").text
                 app_dev_url = driver.find_element(By.XPATH, "//div/a[contains(@href, '/store/apps/dev')]").get_attribute("href")
                 app_dev_name = driver.find_element(By.XPATH, "//div/a[contains(@href, '/store/apps/dev')]/span").text
 
